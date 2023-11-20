@@ -10,41 +10,86 @@
 #define CE_PIN 9
 #define CSN_PIN 10
 RF24 radio(CE_PIN, CSN_PIN);
-MPU6050 sensor;
 const uint64_t address = 0xF0F0F0F0E1LL;
-int counter = 0;
-struct MyData 
-{
-  int counter;
-  float temperature;
-  float humidity;
-  float altitude;
-  float pressure;
+
+struct Datos_xy{        //Se declara un objeto con 2 variables, x-y
+  float x, y;
 };
 
-MyData data;
+Datos_xy data;
+
+MPU6050 sensor;
+
+int ax, ay, az;         // Valores RAW (sin procesar) del acelerometro y giroscopio en los ejes x,y,z
+int gx, gy, gz;
+
+long tiempo_prev;
+float dt;
+float ang_x, ang_y;
+float ang_x_prev, ang_y_prev;
+
+
+
+void obtener_xy(){ //tipo de dato: Datos_xy             Nombre de la función: obtener_xy
+    
+  sensor.getAcceleration(&ax, &ay, &az); // Leer las aceleraciones y velocidades angulares
+  sensor.getRotation(&gx, &gy, &gz);
+  
+  dt = (millis()-tiempo_prev)/1000.0;
+  tiempo_prev=millis();
+  
+  //Calcular los ángulos con acelerometro
+  float accel_ang_x=atan(ay/sqrt(pow(ax,2) + pow(az,2)))*(180.0/3.14);
+  float accel_ang_y=atan(-ax/sqrt(pow(ay,2) + pow(az,2)))*(180.0/3.14);
+  
+  //Calcular angulo de rotación con giroscopio y filtro complemento  
+  ang_x = 0.98*(ang_x_prev+(gx/131)*dt) + 0.02*accel_ang_x;
+  ang_y = 0.98*(ang_y_prev+(gy/131)*dt) + 0.02*accel_ang_y;
+  
+  
+  ang_x_prev=ang_x;
+  ang_y_prev=ang_y;
+
+  //Mostrar los angulos separadas por un [tab]
+
+  data.x=ang_x;     //Se asigna valor a x
+  data.y=ang_y;     //Se asigna valor a y 
+  delay(10);    //Se retorna objeto
+    
+}
+
+
+
+
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
+  Wire.begin();
+  sensor.initialize();
 
-  radio.begin();                  //Starting the Wireless communication
+  while(!sensor.testConnection()){
+    Serial.println("El giroscopio no se ha iniciado correctamente"); //Manda mensaje si el sensor no fue inicializado de forma correcta
+    delay(5000);
+  }
+
+  Serial.begin("El giroscopio se inicio con exito");
+
+
+  while(!radio.begin()){
+    Serial.println("La comunicacion por Radio(NRF24L01) no se ha inciiado correctamente");
+    delay(5000);
+  }
+  Serial.println("Comunicacion por radio iniciada correctamente");
   radio.openWritingPipe(address); //Setting the address where we will send the data
   radio.setPALevel(RF24_PA_MAX);  //You can set it as minimum or maximum depending on the distance between the transmitter and receiver.
   radio.stopListening(); 
-
+ 
 }
 
 void loop() {
-  data.counter = counter;
-  data.temperature = 1;
-  data.pressure = 2;
-  data.altitude = 3;
-  data.humidity = 4;
+  
 
-  Serial.print("Packet No. = ");
-  Serial.println(data.counter);
-
-  bool ok = radio.write(&data, sizeof(MyData));
+  bool ok = radio.write(&data, sizeof(Datos_xy));
 
   if(ok)
   {
@@ -55,6 +100,5 @@ void loop() {
      Serial.println("********************** no se ha podido enviar *******************");
   }
 
-  counter++;
-  delay(5000);
+  delay(150);
 }

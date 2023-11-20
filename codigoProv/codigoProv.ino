@@ -81,8 +81,8 @@ float datoY=resultado.y;//Se le da valor de y a datoY
   Serial.print(datoX); 
   Serial.print("tRotacion en Y: ");
   Serial.println(datoY);
-  ///++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++CARRO RON RON 
-      if(datoY>=-6&&datoY<=6){
+  ///++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++CARRO RON RON    
+    if(datoY>=-6&&datoY<=6){
     servo();
     digitalWrite(m11,LOW);
     digitalWrite(m12,LOW);
