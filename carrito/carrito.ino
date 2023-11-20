@@ -1,13 +1,12 @@
+#include <Servo.h>
 #include <RF24.h>
 #include <RF24_config.h>
 #include <nRF24L01.h>
 #include <printf.h>
-
 #include <SPI.h>
 
 RF24 radio(2, 5); 
 const uint64_t address = 0xF0F0F0F0E1LL;  
-
 struct MyData 
 {
   int counter;
@@ -17,6 +16,7 @@ struct MyData
   float pressure;
 };
 MyData data;
+Servo myservo;
 
 
 

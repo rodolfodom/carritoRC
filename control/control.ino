@@ -1,16 +1,18 @@
+#include <MPU6050.h>
+#include <Wire.h>
+#include <I2Cdev.h>
 #include <RF24.h>
 #include <RF24_config.h>
 #include <nRF24L01.h>
 #include <printf.h>
-
 #include <SPI.h>
 
 #define CE_PIN 9
 #define CSN_PIN 10
-const uint64_t address = 0xF0F0F0F0E1LL;
 RF24 radio(CE_PIN, CSN_PIN);
+MPU6050 sensor;
+const uint64_t address = 0xF0F0F0F0E1LL;
 int counter = 0;
-
 struct MyData 
 {
   int counter;
